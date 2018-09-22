@@ -86,6 +86,31 @@ func TestCurrent(t *testing.T) {
 	}
 }
 
+func TestForecast(t *testing.T) {
+	tests := []struct {
+		client Getter
+		isErr  bool
+	}{
+		{okGetter{}, false},
+		{errorGetter{}, true},
+		{badGetter{}, true},
+		{badJSONGetter{}, true},
+		{notFoundGetter{}, true},
+	}
+	for _, tc := range tests {
+		t.Run(reflect.TypeOf(tc.client).Name(), func(t *testing.T) {
+			api := API{Client: tc.client}
+			_, err := api.Forecast(ByCity{})
+			if tc.isErr && err == nil {
+				t.Fatalf("expected an error [%v]", err)
+			}
+			if !tc.isErr && err != nil {
+				t.Fatalf("got error: %v", err)
+			}
+		})
+	}
+}
+
 type okGetter struct{}
 
 func (okGetter) Get(string) (*http.Response, error) {

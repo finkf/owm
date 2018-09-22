@@ -50,6 +50,26 @@ func (api API) Current(q Queryer) (*Current, error) {
 	return &c, nil
 }
 
+// Forecast queries the API and returns
+// a 5 day / 3 hours forecast or an error.
+func (api API) Forecast(q Queryer) (*Forecast, error) {
+	url := api.url("forecast", q)
+	r, err := api.get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	var f Forecast
+	if err := decodeJSONResponse(r, &f); err != nil {
+		return nil, err
+	}
+	if f.Cod != http.StatusOK {
+		return nil, fmt.Errorf("bad status: %s [%d]",
+			f.Message, f.Cod)
+	}
+	return &f, nil
+}
+
 func (api API) get(url string) (io.ReadCloser, error) {
 	resp, err := api.Client.Get(url)
 	if err != nil {
