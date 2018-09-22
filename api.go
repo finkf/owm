@@ -57,14 +57,17 @@ func (api API) url(what string, q Queryer) string {
 	return fmt.Sprintf("%s/%s%s&appid=%s", URL, what, q.Query(), api.Key)
 }
 
+// Queryer defines the interface for location searches.
 type Queryer interface {
 	Query() string
 }
 
+// ByCity searches for location by city and country.
 type ByCity struct {
 	City, Country, Lang string
 }
 
+// Query implements the Queryer interface.
 func (q ByCity) Query() string {
 	query := "?q=" + q.City
 	if q.Country != "" {
@@ -73,20 +76,24 @@ func (q ByCity) Query() string {
 	return appendLang(query, q.Lang)
 }
 
+// ByID searches for cities by ID.
 type ByID struct {
 	ID   int
 	Lang string
 }
 
+// Query implements the Queryer interface.
 func (q ByID) Query() string {
 	return appendLang(fmt.Sprintf("?id=%d", q.ID), q.Lang)
 }
 
+// ByZIP searches location by ZIP code.
 type ByZIP struct {
 	ZIP           int
 	Country, Lang string
 }
 
+// Query implements the Queryer interface.
 func (q ByZIP) Query() string {
 	query := fmt.Sprintf("?zip=%d", q.ZIP)
 	if q.Country != "" {
@@ -95,11 +102,13 @@ func (q ByZIP) Query() string {
 	return appendLang(query, q.Lang)
 }
 
+// ByCoords searches for locations by longitude an latitute.
 type ByCoords struct {
 	Lon, Lat int
 	Lang     string
 }
 
+// Query implements the Queryer interface.
 func (q ByCoords) Query() string {
 	return appendLang(fmt.Sprintf("?lat=%d&lon=%d", q.Lat, q.Lon), q.Lang)
 }
