@@ -64,8 +64,8 @@ func (api API) Forecast(q Queryer) (*Forecast, error) {
 		return nil, err
 	}
 	if f.Cod != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %s [%d]",
-			f.Message, f.Cod)
+		return nil, fmt.Errorf("bad status: %d %s",
+			f.Cod, f.Message)
 	}
 	return &f, nil
 }
@@ -89,7 +89,7 @@ func (api API) url(what string, q Queryer) string {
 func decodeJSONResponse(r io.Reader, out interface{}) error {
 	dec := json.NewDecoder(r)
 	if err := dec.Decode(out); err != nil {
-		return errors.Annotate(err, "invalid server response")
+		return errors.Annotate(err, "bad server response")
 	}
 	return nil
 }
