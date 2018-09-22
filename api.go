@@ -64,7 +64,7 @@ func (api API) Forecast(q Queryer) (*Forecast, error) {
 		return nil, err
 	}
 	if f.Cod != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %d %s",
+		return nil, fmt.Errorf("bad status: %d %f",
 			f.Cod, f.Message)
 	}
 	return &f, nil
