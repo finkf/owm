@@ -20,8 +20,10 @@ type Weather struct {
 // Main defines the basic weather information.
 type Main struct {
 	Temp               Kelvin
-	TempMin            Kelvin `json:"temp_min"`
-	TempMax            Kelvin `json:"temp_max"`
+	TempMin            Kelvin  `json:"temp_min"`
+	TempMax            Kelvin  `json:"temp_max"`
+	SeaLevel           float64 `json:"sea_level"`
+	Groundlevel        float64 `json:"grnd_level"`
 	Humidity, Pressure int
 }
 
@@ -53,6 +55,31 @@ type Current struct {
 	DT            uint64
 	ID, Cod       int
 	Name, Message string
+}
+
+// City defines information about a city.
+type City struct {
+	ID            int
+	Name, Country string
+	Coord         Coord
+}
+
+// Forecast defines information about a 5 day / 3 hours forecast.
+type Forecast struct {
+	Cod, Cnt int
+	Message  string
+	City     City
+	List     []ForecastItem
+}
+
+// ForecastItem defines an item for a forecast.
+type ForecastItem struct {
+	Main       Main
+	Weather    []Weather
+	Clouds     Clouds
+	Wind       Wind
+	Rain, Snow Volume
+	DTTXT      string `json:"dt_txt"`
 }
 
 // Kelvin defines temperatures in Kelvin.
