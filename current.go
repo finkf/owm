@@ -55,12 +55,15 @@ type Current struct {
 	Name, Message string
 }
 
+// Kelvin defines temperatures in Kelvin.
 type Kelvin float64
 
+// Celcius returns the celcius equivalent of the temperature.
 func (k Kelvin) Celcius() float64 {
 	return float64(k) - 273.15
 }
 
+// Fahrenheit returns the fahrenheit equivalent of the temperature.
 func (k Kelvin) Fahrenheit() float64 {
 	return k.Celcius()*1.8 + 32.0
 }
