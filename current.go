@@ -67,7 +67,7 @@ type City struct {
 // Forecast defines information about a 5 day / 3 hours forecast.
 type Forecast struct {
 	Cod, Cnt int
-	Message  string
+	Message  float64
 	City     City
 	List     []ForecastItem
 }
