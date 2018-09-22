@@ -31,8 +31,8 @@ type API struct {
 
 // Current queries the API and returns
 // all current weather data or an error.
-func (api API) Current(q Query) (*Current, error) {
-	url := api.url("weather", q.params())
+func (api API) Current(q Queryer) (*Current, error) {
+	url := api.url("weather", q)
 	resp, err := api.Client.Get(url)
 	if err != nil {
 		return nil, errors.Annotatef(err, "cannot connect to: %s", url)
@@ -53,43 +53,65 @@ func (api API) Current(q Query) (*Current, error) {
 	return &c, nil
 }
 
-func (api API) url(what, params string) string {
-	return fmt.Sprintf("%s/%s?%s&appid=%s", URL, what, params, api.Key)
+func (api API) url(what string, q Queryer) string {
+	return fmt.Sprintf("%s/%s%s&appid=%s", URL, what, q.Query(), api.Key)
 }
 
-// Query defines the locations for weather queries.
-// You do not need to define all parameters.
-// Use combinations that make sense.
-// The Lang parameter can be used to change the
-// language of weather descriptions.
-type Query struct {
+type Queryer interface {
+	Query() string
+}
+
+type ByCity struct {
 	City, Country, Lang string
-	Lat, Lon, ID, ZIP   int
 }
 
-func (q Query) params() string {
-	if q.ID != 0 {
-		return q.appendLang(fmt.Sprintf("id=%d", q.ID))
+func (q ByCity) Query() string {
+	query := "?q=" + q.City
+	if q.Country != "" {
+		query += "," + q.Country
 	}
-	var params string
-	if q.ZIP != 0 {
-		params = fmt.Sprintf("zip=%d", q.ZIP)
-	}
-	if q.City != "" && params == "" {
-		params = fmt.Sprintf("q=%s", q.City)
-	}
-	if q.Country != "" && params != "" {
-		params += fmt.Sprintf(",%s", q.Country)
-	}
-	if params != "" {
-		return q.appendLang(params)
-	}
-	return q.appendLang(fmt.Sprintf("lat=%d&lon=%d", q.Lat, q.Lon))
+	return appendLang(query, q.Lang)
 }
 
-func (q Query) appendLang(params string) string {
-	if q.Lang != "" {
-		return params + fmt.Sprintf("&lang=%s", q.Lang)
+type ByID struct {
+	ID   int
+	Lang string
+}
+
+func (q ByID) Query() string {
+	return appendLang(fmt.Sprintf("?id=%d", q.ID), q.Lang)
+}
+
+type ByZIP struct {
+	ZIP           int
+	Country, Lang string
+}
+
+func (q ByZIP) Query() string {
+	query := fmt.Sprintf("?zip=%d", q.ZIP)
+	if q.Country != "" {
+		query += "," + q.Country
+	}
+	return appendLang(query, q.Lang)
+}
+
+type ByCoords struct {
+	Lon, Lat int
+	Lang     string
+}
+
+func (q ByCoords) Query() string {
+	return appendLang(fmt.Sprintf("?lat=%d&lon=%d", q.Lat, q.Lon), q.Lang)
+}
+
+func appendLang(params, lang string) string {
+	if lang != "" {
+		return params + fmt.Sprintf("&lang=%s", lang)
 	}
 	return params
 }
+
+var _ Queryer = ByCity{}
+var _ Queryer = ByID{}
+var _ Queryer = ByZIP{}
+var _ Queryer = ByCoords{}

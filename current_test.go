@@ -38,24 +38,23 @@ func TestKelvin(t *testing.T) {
 
 func TestQuery(t *testing.T) {
 	tests := []struct {
-		query Query
-		want  string
+		q    Queryer
+		want string
 	}{
-		{Query{}, "lat=0&lon=0"}, /* default query */
-		{Query{City: "Berlin"}, "q=Berlin"},
-		{Query{City: "Berlin", Country: "de"}, "q=Berlin,de"},
-		{Query{City: "Berlin", Lang: "de"}, "q=Berlin&lang=de"},
-		{Query{ZIP: 12345}, "zip=12345"},
-		{Query{ZIP: 12345, Country: "de"}, "zip=12345,de"},
-		{Query{ZIP: 12345, Lang: "de"}, "zip=12345&lang=de"},
-		{Query{ID: 12345}, "id=12345"},
-		{Query{ID: 12345, Lang: "de"}, "id=12345&lang=de"},
-		{Query{Lat: 1, Lon: 1}, "lat=1&lon=1"},
-		{Query{Lat: 1, Lon: 1, Lang: "es"}, "lat=1&lon=1&lang=es"},
+		{ByCity{City: "Berlin"}, "?q=Berlin"},
+		{ByCity{City: "Berlin", Country: "de"}, "?q=Berlin,de"},
+		{ByCity{City: "Berlin", Lang: "de"}, "?q=Berlin&lang=de"},
+		{ByZIP{ZIP: 12345}, "?zip=12345"},
+		{ByZIP{ZIP: 12345, Country: "de"}, "?zip=12345,de"},
+		{ByZIP{ZIP: 12345, Lang: "de"}, "?zip=12345&lang=de"},
+		{ByID{ID: 12345}, "?id=12345"},
+		{ByID{ID: 12345, Lang: "de"}, "?id=12345&lang=de"},
+		{ByCoords{Lat: 1, Lon: 1}, "?lat=1&lon=1"},
+		{ByCoords{Lat: 1, Lon: 1, Lang: "es"}, "?lat=1&lon=1&lang=es"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.want, func(t *testing.T) {
-			if got := tc.query.params(); got != tc.want {
+			if got := tc.q.Query(); got != tc.want {
 				t.Fatalf("expected %q; got %q", tc.want, got)
 			}
 		})
@@ -76,7 +75,7 @@ func TestCurrent(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(reflect.TypeOf(tc.client).Name(), func(t *testing.T) {
 			api := API{Client: tc.client}
-			_, err := api.Current(Query{})
+			_, err := api.Current(ByCity{})
 			if tc.isErr && err == nil {
 				t.Fatalf("expected an error [%v]", err)
 			}
