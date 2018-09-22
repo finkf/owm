@@ -8,7 +8,7 @@ type Coord struct {
 // Sys defines the country and sunset and sunrise timestamps.
 type Sys struct {
 	Country         string
-	Sunrise, Sunset uint64
+	Sunrise, Sunset int64
 }
 
 // Weather defines basic information about the weather.
@@ -52,7 +52,7 @@ type Current struct {
 	Wind          Wind
 	Rain, Snow    Volume
 	Clouds        Clouds
-	DT            uint64
+	DT            int64
 	ID, Cod       int
 	Name, Message string
 }
@@ -74,6 +74,7 @@ type Forecast struct {
 
 // ForecastItem defines an item for a forecast.
 type ForecastItem struct {
+	DT         int64
 	Main       Main
 	Weather    []Weather
 	Clouds     Clouds
