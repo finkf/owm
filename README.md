@@ -8,18 +8,18 @@ implementation in [go](https://golang.org).
 Basic usage:
 ```golang
 import (
-	   "fmt"
-	   "net/http"
+    "fmt"
+	"net/http"
 
-	   "github.com/finkf/owm"
+	"github.com/finkf/owm"
 )
 
 func main() {
 	api := owm.API{
-	 	 Client: &http.Client{},
-		 Key: "secret-key"
+		Client: &http.Client{},
+		Key: "personal-owm-api-key"
 	}
-	c, err := api.Current(owm.Query{City: "London"})
+	c, err := api.Current(owm.ByCity{City: "London"})
 	if err != nil {
 	   panic(err)
 	}
