@@ -9,18 +9,28 @@ import (
 )
 
 const (
+	// URL defines the base URL for the open weather map.
 	URL = "http://api.openweathermap.org/data/2.5"
 )
 
+// Getter defines the default interface for clients
+// that can connect to the OWM-API. Note that http.Client
+// statifies this interface.
 type Getter interface {
 	Get(string) (*http.Response, error)
 }
 
+// API is the base for all OWM queries.
 type API struct {
+	// Client is used to send requests to the OWM-API.
+	// It will be almost allways an instance of http.Client.
 	Client Getter
-	Key    string
+	// Key defines the OWM appid key.
+	Key string
 }
 
+// Current queries the API and returns
+// all current weather data or an error.
 func (api API) Current(q Query) (*Current, error) {
 	url := api.url("weather", q.params())
 	resp, err := api.Client.Get(url)
@@ -47,6 +57,11 @@ func (api API) url(what, params string) string {
 	return fmt.Sprintf("%s/%s?%s&appid=%s", URL, what, params, api.Key)
 }
 
+// Query defines the locations for weather queries.
+// You do not need to define all parameters.
+// Use combinations that make sense.
+// The Lang parameter can be used to change the
+// language of weather descriptions.
 type Query struct {
 	City, Country, Lang string
 	Lat, Lon, ID, ZIP   int
