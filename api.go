@@ -63,8 +63,8 @@ func (api API) Forecast(q Queryer) (*Forecast, error) {
 	if err := decodeJSONResponse(r, &f); err != nil {
 		return nil, err
 	}
-	if f.Cod != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %d %f",
+	if f.Cod != "200" {
+		return nil, fmt.Errorf("bad status: %s %f",
 			f.Cod, f.Message)
 	}
 	return &f, nil

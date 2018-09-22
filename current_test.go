@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/davecheney/errors"
@@ -66,11 +67,11 @@ func TestCurrent(t *testing.T) {
 		client Getter
 		isErr  bool
 	}{
-		{okGetter{}, false},
+		{okGetter{jsonStrCurrent}, false},
 		{errorGetter{}, true},
-		{badGetter{}, true},
-		{badJSONGetter{}, true},
-		{notFoundGetter{}, true},
+		{badGetter{jsonStrCurrent}, true},
+		{badJSONGetter{jsonStrCurrent}, true},
+		{notFoundGetter{jsonStrCurrent}, true},
 	}
 	for _, tc := range tests {
 		t.Run(reflect.TypeOf(tc.client).Name(), func(t *testing.T) {
@@ -91,11 +92,11 @@ func TestForecast(t *testing.T) {
 		client Getter
 		isErr  bool
 	}{
-		{okGetter{}, false},
+		{okGetter{jsonStrForecast}, false},
 		{errorGetter{}, true},
-		{badGetter{}, true},
-		{badJSONGetter{}, true},
-		{notFoundGetter{}, true},
+		{badGetter{jsonStrForecast}, true},
+		{badJSONGetter{jsonStrForecast}, true},
+		{notFoundGetter{jsonStrForecast}, true},
 	}
 	for _, tc := range tests {
 		t.Run(reflect.TypeOf(tc.client).Name(), func(t *testing.T) {
@@ -111,20 +112,20 @@ func TestForecast(t *testing.T) {
 	}
 }
 
-type okGetter struct{}
+type okGetter struct{ str string }
 
-func (okGetter) Get(string) (*http.Response, error) {
+func (g okGetter) Get(string) (*http.Response, error) {
 	w := httptest.NewRecorder()
-	io.WriteString(w, jsonStr)
+	io.WriteString(w, g.str)
 	return w.Result(), nil
 }
 
-type badGetter struct{}
+type badGetter struct{ str string }
 
-func (badGetter) Get(string) (*http.Response, error) {
+func (g badGetter) Get(string) (*http.Response, error) {
 	w := httptest.NewRecorder()
 	w.WriteHeader(http.StatusNotFound)
-	io.WriteString(w, jsonStr)
+	io.WriteString(w, g.str)
 	return w.Result(), nil
 }
 
@@ -134,23 +135,24 @@ func (errorGetter) Get(string) (*http.Response, error) {
 	return nil, errors.New("error")
 }
 
-type badJSONGetter struct{}
+type badJSONGetter struct{ str string }
 
-func (badJSONGetter) Get(string) (*http.Response, error) {
+func (g badJSONGetter) Get(string) (*http.Response, error) {
 	w := httptest.NewRecorder()
-	io.WriteString(w, jsonStr[0:17])
+	io.WriteString(w, g.str[0:17])
 	return w.Result(), nil
 }
 
-type notFoundGetter struct{}
+type notFoundGetter struct{ str string }
 
-func (notFoundGetter) Get(string) (*http.Response, error) {
+func (g notFoundGetter) Get(string) (*http.Response, error) {
 	w := httptest.NewRecorder()
-	io.WriteString(w, jsonStr[0:len(jsonStr)-4]+"401}")
+	io.WriteString(w, strings.Replace(g.str, "200", "401", 1))
+	io.WriteString(w, g.str[0:len(g.str)-4]+"401}")
 	return w.Result(), nil
 }
 
-var jsonStr = `
+var jsonStrCurrent = `
 {"coord":{"lon":139,"lat":35},
 "sys":{"country":"JP","sunrise":1369769524,"sunset":1369821049},
 "weather":[{"id":804,"main":"clouds","description":"overcast clouds","icon":"04n"}],
@@ -162,3 +164,28 @@ var jsonStr = `
 "id":1851632,
 "name":"Shuzenji",
 "cod":200}`
+
+var jsonStrForecast = `
+{"city":{"id":1851632,"name":"Shuzenji",
+"coord":{"lon":138.933334,"lat":34.966671},
+"country":"JP"},
+"cod":"200",
+"message":0.0045,
+"cnt":38,
+"list":[{
+        "dt":1406106000,
+        "main":{
+            "temp":298.77,
+            "temp_min":298.77,
+            "temp_max":298.774,
+            "pressure":1005.93,
+            "sea_level":1018.18,
+            "grnd_level":1005.93,
+            "humidity":87,
+            "temp_kf":0.26},
+        "weather":[{"id":804,"main":"Clouds","description":"overcast clouds","icon":"04d"}],
+        "clouds":{"all":88},
+        "wind":{"speed":5.71,"deg":229.501},
+        "sys":{"pod":"d"},
+        "dt_txt":"2014-07-23 09:00:00"}
+        ]}`
