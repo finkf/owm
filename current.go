@@ -36,7 +36,7 @@ type Wind struct {
 // Volume defines the volumes of rain or snow of
 // the last 3 hours.
 type Volume struct {
-	H3 int `json:"3h"`
+	H3 float64 `json:"3h"`
 }
 
 // Clouds are clouds.
