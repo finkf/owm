@@ -3,6 +3,7 @@ package owm
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/davecheney/errors"
@@ -33,18 +34,14 @@ type API struct {
 // all current weather data or an error.
 func (api API) Current(q Queryer) (*Current, error) {
 	url := api.url("weather", q)
-	resp, err := api.Client.Get(url)
+	r, err := api.get(url)
 	if err != nil {
-		return nil, errors.Annotatef(err, "cannot connect to: %s", url)
+		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %s", resp.Status)
-	}
-	dec := json.NewDecoder(resp.Body)
+	defer r.Close()
 	var c Current
-	if err := dec.Decode(&c); err != nil {
-		return nil, errors.Annotatef(err, "invalid server response")
+	if err := decodeJSONResponse(r, &c); err != nil {
+		return nil, err
 	}
 	if c.Cod != http.StatusOK {
 		return nil, fmt.Errorf("bad status: %s [%d]",
@@ -53,8 +50,28 @@ func (api API) Current(q Queryer) (*Current, error) {
 	return &c, nil
 }
 
+func (api API) get(url string) (io.ReadCloser, error) {
+	resp, err := api.Client.Get(url)
+	if err != nil {
+		return nil, errors.Annotatef(err, "cannot connect to: %s", url)
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("bad status: %s", resp.Status)
+	}
+	return resp.Body, nil
+}
+
 func (api API) url(what string, q Queryer) string {
 	return fmt.Sprintf("%s/%s%s&appid=%s", URL, what, q.Query(), api.Key)
+}
+
+func decodeJSONResponse(r io.Reader, out interface{}) error {
+	dec := json.NewDecoder(r)
+	if err := dec.Decode(out); err != nil {
+		return errors.Annotate(err, "invalid server response")
+	}
+	return nil
 }
 
 // Queryer defines the interface for location searches.
