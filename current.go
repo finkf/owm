@@ -75,12 +75,12 @@ type Forecast struct {
 // ForecastItem defines an item for a forecast.
 type ForecastItem struct {
 	DT         int64
+	DTTXT      int64 `json:"dt_txt"`
 	Main       Main
 	Weather    []Weather
 	Clouds     Clouds
 	Wind       Wind
 	Rain, Snow Volume
-	DTTXT      string `json:"dt_txt"`
 }
 
 // Kelvin defines temperatures in Kelvin.
