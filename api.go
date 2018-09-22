@@ -110,7 +110,8 @@ type ByCoords struct {
 
 // Query implements the Queryer interface.
 func (q ByCoords) Query() string {
-	return appendLang(fmt.Sprintf("?lat=%d&lon=%d", q.Lat, q.Lon), q.Lang)
+	return appendLang(
+		fmt.Sprintf("?lat=%d&lon=%d", q.Lat, q.Lon), q.Lang)
 }
 
 func appendLang(params, lang string) string {
